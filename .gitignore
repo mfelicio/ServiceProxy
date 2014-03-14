@@ -22,6 +22,8 @@ x64/
 *.ilk
 *.meta
 *.obj
+*.dll
+*.dll.config
 *.pch
 *.pdb
 *.pgc
@@ -80,6 +82,7 @@ publish
 
 # NuGet Packages Directory
 packages
+*.nupkg
 
 # Windows Azure Build Output
 csx

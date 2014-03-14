@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ServiceProxy</id>
+    <version>1.0.0</version>
+    <title>ServiceProxy</title>
+    <authors>Manuel Felicio</authors>
+    <owners>Manuel Felicio</owners>
+    <licenseUrl>http://opensource.org/licenses/mit-license.php</licenseUrl>
+    <projectUrl>http://github.com/mfelicio/ServiceProxy</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ServiceProxy is an high performance asynchronous proxy that allows you to use service contracts with your favorite messaging framework. </description>
+    <releaseNotes>First public release.</releaseNotes>
+    <copyright>Copyright 2014 Manuel Felício</copyright>
+    <tags>messaging service proxy async asynchronous</tags>
+    <dependencies>
+      <dependency id="Castle.Core" version="3.2.2" />
+    </dependencies>
+  </metadata>
+</package>
