@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ServiceProxy.Redis</id>
-    <version>1.0.0-beta</version>
+    <version>1.0.0</version>
     <title>ServiceProxy.Redis</title>
     <authors>Manuel Felicio</authors>
     <owners>Manuel Felicio</owners>
@@ -12,7 +12,7 @@
     <description>ServiceProxy.Redis is a simple request/reply messaging framework built on Redis queues that support service contracts using ServiceProxy.</description>
     <releaseNotes>First public release.</releaseNotes>
     <copyright>Copyright 2014 Manuel Felício</copyright>
-    <tags>redis messaging service proxy async asynchronous</tags>
+    <tags>redis messaging services request reply proxy async asynchronous</tags>
     <dependencies>
       <dependency id="ServiceProxy" version="1.0.0" />
       <dependency id="BookSleeve" version="1.3.41" />
