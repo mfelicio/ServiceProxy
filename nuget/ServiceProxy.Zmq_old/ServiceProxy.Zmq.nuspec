@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ServiceProxy.Zmq</id>
-    <version>1.0.1-beta</version>
+    <version>1.0.0</version>
     <title>ServiceProxy.Zmq</title>
     <authors>Manuel Felicio</authors>
     <owners>Manuel Felicio</owners>
@@ -15,7 +15,7 @@
     <tags>zmq zeromq 0mq messaging services request reply proxy async asynchronous</tags>
     <dependencies>
       <dependency id="ServiceProxy" version="1.0.0" />
-      <dependency id="clrzmq" version="3.0.0-rc1" />
+      <dependency id="clrzmq" version="2.2.5" />
     </dependencies>
   </metadata>
 </package>

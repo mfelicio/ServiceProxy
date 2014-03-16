@@ -8,3 +8,7 @@ call pack.cmd
 cd..
 cd ServiceProxy.Zmq
 call pack.cmd
+
+cd..
+cd ServiceProxy.Zmq_old
+call pack.cmd
