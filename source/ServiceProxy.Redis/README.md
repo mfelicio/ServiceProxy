@@ -5,7 +5,7 @@ ServiceProxy.Redis is a simple request/reply messaging framework built on Redis 
 
 ## Getting started
 
-The quickest way to get started is to use the [Nuget package][serviceproxy.zmq-nuget].
+The quickest way to get started is to use the [Nuget package][serviceproxy.redis-nuget].
 
 ### Example from a unit test in ServiceProxy.Redis.Tests
 
