@@ -8,7 +8,7 @@ namespace ServiceProxy.Zmq
 {
     /// <summary>
     /// Raw format: HeaderSize+Header+Data
-    /// Header format: ReceiveQueue:Id:Service:Operation
+    /// Header format: Id:Service:Operation
     /// Data format: byte[](Arguments)
     /// </summary>
     class ZmqRequest
