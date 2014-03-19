@@ -54,6 +54,12 @@ namespace ServiceProxy.Zmq.Tests
                         var persons = await serviceClient.ListPersonsAsync(5);
                         Assert.That(persons, Is.Not.Null);
                         Assert.AreEqual(5, persons.Count());
+
+                        var nullCollection = await serviceClient.ListPersonsAsync(-1);
+                        Assert.IsNull(nullCollection);
+
+                        var nullObject = serviceClient.GetPerson(-1);
+                        Assert.IsNull(nullObject);
                     }
                 }
             }

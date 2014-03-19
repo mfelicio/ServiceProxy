@@ -45,6 +45,12 @@ namespace ServiceProxy.Tests
             //Asynchronous IAsyncResult based , awaiting with Task
             var person = await Task.Factory.FromAsync<int, Person>(serviceClient.BeginGetPerson, serviceClient.EndGetPerson, 1, null);
             Assert.That(person, Is.Not.Null);
+
+            var nullCollection = await serviceClient.ListPersonsAsync(-1);
+            Assert.IsNull(nullCollection);
+
+            var nullObject = serviceClient.GetPerson(-1);
+            Assert.IsNull(nullObject);
         }
 
         [Test]

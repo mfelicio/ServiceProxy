@@ -66,6 +66,11 @@ namespace ServiceProxy.Internal
 
         public static object EnumerableToObject<T>(IEnumerable<T> source)
         {
+            if (source == null)
+            {
+                return null;
+            }
+
             if (source is T[] || source is List<T>)
             {
                 return source;

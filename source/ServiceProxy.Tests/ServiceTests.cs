@@ -66,6 +66,20 @@ namespace ServiceProxy.Tests
             Assert.IsNotNull(responseData.Data);
         }
 
+        [TestCase(typeof(ITestService2), "ListPersons", new object[] { -1 })]
+        [TestCase(typeof(ITestService2), "ListPersonsAsync", new object[] { -1 })]
+        [TestCase(typeof(ITestService2), "BeginListPersons", new object[] { -1 })]
+        [TestCase(typeof(ITestService2), "GetPerson", new object[] { -1 })]
+        [TestCase(typeof(ITestService2), "GetPersonAsync", new object[] { -1 })]
+        [TestCase(typeof(ITestService2), "BeginGetPerson", new object[] { -1 })]
+        public async void ProcessRequest_NullResults(Type serviceType, string operation, object[] arguments)
+        {
+            var response = await ProcessRequestInternal(serviceType, operation, arguments);
+
+            Assert.IsNull(response.Exception);
+            Assert.IsNull(response.Data);
+        }
+
         private Task<ResponseData> ProcessRequestInternal(Type serviceType, string operation, object[] arguments)
         {
             var factory = new ServiceFactory(new DependencyResolver());

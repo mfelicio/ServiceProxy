@@ -25,7 +25,14 @@ namespace ServiceProxy.Redis.Tests
         [TestFixtureSetUp]
         public void StartRedis()
         {
-            this.redisServerProcess = Process.Start(new ProcessStartInfo("redis-server.lnk"));
+            try
+            {
+                this.redisServerProcess = Process.Start(new ProcessStartInfo("redis-server.lnk"));
+            }
+            catch (Exception ex)
+            {
+                Assert.Ignore("Could not start redis-server. Check redis-server.lnk path. Error: {0}", ex.Message);
+            }
         }
 
         [TestFixtureTearDown]
@@ -58,6 +65,12 @@ namespace ServiceProxy.Redis.Tests
                     var persons = await serviceClient.ListPersonsAsync(5);
                     Assert.That(persons, Is.Not.Null);
                     Assert.AreEqual(5, persons.Count());
+
+                    var nullCollection = await serviceClient.ListPersonsAsync(-1);
+                    Assert.IsNull(nullCollection);
+
+                    var nullObject = serviceClient.GetPerson(-1);
+                    Assert.IsNull(nullObject);
                 }
             }
         }

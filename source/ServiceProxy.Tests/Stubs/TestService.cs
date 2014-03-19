@@ -104,17 +104,17 @@ namespace ServiceProxy.Tests.Stubs
 
         public IEnumerable<Person> ListPersons(int size)
         {
-            return this.persons.Take(size);
+            return size >= 0 ? this.persons.Take(size) : null;
         }
 
         public Task<IEnumerable<Person>> ListPersonsAsync(int size)
         {
-            return Task.FromResult(this.persons.Take(size));
+            return Task.FromResult(this.ListPersons(size));
         }
 
         public IAsyncResult BeginListPersons(int size, AsyncCallback asyncCallback, object asyncState)
         {
-            var task = Task.Factory.StartNew((s) => this.persons.Take(size), asyncState);
+            var task = Task.Factory.StartNew((s) => this.ListPersons(size), asyncState);
             task.ContinueWith(t => asyncCallback(t));
             return task;
         }
@@ -127,17 +127,17 @@ namespace ServiceProxy.Tests.Stubs
 
         public Person GetPerson(int idx)
         {
-            return this.persons[idx];
+            return idx >= 0 ? this.persons[idx] : null;
         }
 
         public Task<Person> GetPersonAsync(int idx)
         {
-            return Task.FromResult(this.persons[idx]);
+            return Task.FromResult(this.GetPerson(idx));
         }
 
         public IAsyncResult BeginGetPerson(int idx, AsyncCallback asyncCallback, object asyncState)
         {
-            var task = Task.Factory.StartNew((s) => this.persons[idx], asyncState);
+            var task = Task.Factory.StartNew((s) => this.GetPerson(idx), asyncState);
             task.ContinueWith(t => asyncCallback(t));
             return task;
         }
@@ -147,6 +147,5 @@ namespace ServiceProxy.Tests.Stubs
             var task = asyncResult as Task<Person>;
             return task.Result;
         }
-
     }
 }
