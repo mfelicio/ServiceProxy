@@ -12,13 +12,13 @@ namespace ServiceProxy.Internal
     {
         private readonly Type contractType;
         private readonly IClient client;
-        private readonly Dictionary<string, OperationInterceptor> operationInvokers;
+        private readonly Dictionary<string, OperationInterceptor> operationInterceptors;
 
         public ServiceClientInterceptor(Type contractType, IClient client)
         {
             this.contractType = contractType;
             this.client = client;
-            this.operationInvokers = contractType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            this.operationInterceptors = contractType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
                                                  .ToDictionary(m => m.Name, this.CreateInvoker);
         }
 
@@ -71,9 +71,9 @@ namespace ServiceProxy.Internal
         public void Intercept(IInvocation invocation)
         {
             var operation = invocation.Method.Name;
-            var invoker = operationInvokers[operation];
+            var interceptor = operationInterceptors[operation];
 
-            invoker.Invoke(invocation);
+            interceptor.Intercept(invocation);
         }
 
     }

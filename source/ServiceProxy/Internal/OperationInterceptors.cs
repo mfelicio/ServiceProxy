@@ -23,7 +23,7 @@ namespace ServiceProxy.Internal
             this.client = client;
         }
 
-        public abstract void Invoke(IInvocation invocation);
+        public abstract void Intercept(IInvocation invocation);
     }
 
     internal class SynchronousOperationInterceptor : OperationInterceptor
@@ -34,7 +34,7 @@ namespace ServiceProxy.Internal
 
         }
 
-        public override void Invoke(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments));
             var response = responseTask.Result;
@@ -97,7 +97,7 @@ namespace ServiceProxy.Internal
             return ReflectionUtils.Tasks.CreateTaskCompletionSource<object>(task, r => null).Task;
         }
 
-        public override void Invoke(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments));
 
@@ -113,7 +113,7 @@ namespace ServiceProxy.Internal
 
         }
 
-        public override void Invoke(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments.Take(invocation.Arguments.Length -2).ToArray()));
 
@@ -134,7 +134,7 @@ namespace ServiceProxy.Internal
 
         }
 
-        public override void Invoke(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             var asyncResult = invocation.Arguments[0] as IAsyncResult;
 

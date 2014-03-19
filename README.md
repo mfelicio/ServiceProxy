@@ -48,5 +48,6 @@ ServiceProxy is licensed under the [MIT][serviceproxy-license] license.
 [serviceproxy-nuget]: http://packages.nuget.org/Packages/ServiceProxy
 [serviceproxy.redis-github]: https://github.com/mfelicio/ServiceProxy/tree/master/source/ServiceProxy.Redis
 [serviceproxy.zmq-github]: https://github.com/mfelicio/ServiceProxy/tree/master/source/ServiceProxy.Zmq
+[serviceproxy-issues-github]: https://github.com/mfelicio/ServiceProxy/issues
 [castle.core-github]: https://github.com/castleproject/Core
 [serviceproxy-license]: http://opensource.org/licenses/mit-license.php
