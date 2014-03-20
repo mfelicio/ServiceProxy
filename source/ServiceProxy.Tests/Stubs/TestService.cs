@@ -17,6 +17,8 @@ namespace ServiceProxy.Tests.Stubs
 
         void DoLots(Guid p1, long p2, DateTime p3, Guid? p4, string p5, bool p6);
 
+        Task<int> ReplyAfter(int timeToReplyInMilliseconds);
+
         void Fail();
         Task FailAsync();
         IAsyncResult BeginFail(AsyncCallback asyncCallback, object asyncState);
@@ -96,6 +98,11 @@ namespace ServiceProxy.Tests.Stubs
             {
                 throw task.Exception.InnerException;
             }
+        }
+
+        public Task<int> ReplyAfter(int timeToReplyInMilliseconds)
+        {
+            return Task.Delay(timeToReplyInMilliseconds).ContinueWith(t => timeToReplyInMilliseconds);
         }
 
         private Person[] persons = Enumerable.Range(1, 10)

@@ -37,7 +37,7 @@ namespace ServiceProxy.Redis
             return Interlocked.Increment(ref this.nextId).ToString();
         }
 
-        public Task<ResponseData> Request(RequestData request)
+        public Task<ResponseData> Request(RequestData request, CancellationToken token)
         {
             this.EnsureIsReceiving();
 
@@ -50,6 +50,15 @@ namespace ServiceProxy.Redis
 
             var callback = new TaskCompletionSource<ResponseData>();
             this.requestCallbacks[requestId] = callback;
+
+            if (token != CancellationToken.None)
+            {
+                token.Register(() =>
+                {
+                    TaskCompletionSource<ResponseData> _;
+                    this.requestCallbacks.TryRemove(requestId, out _);
+                });
+            }
 
             return callback.Task;
         }

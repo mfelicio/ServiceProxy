@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServiceProxy.Internal
@@ -36,7 +37,10 @@ namespace ServiceProxy.Internal
 
         public override void Intercept(IInvocation invocation)
         {
-            var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments));
+            var responseTask = this.client.Request(
+                                            new RequestData(base.service, base.operation, invocation.Arguments),
+                                            CancellationToken.None);
+
             var response = responseTask.Result;
 
             if (response.Exception == null)
@@ -99,7 +103,9 @@ namespace ServiceProxy.Internal
 
         public override void Intercept(IInvocation invocation)
         {
-            var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments));
+            var responseTask = this.client.Request(
+                                            new RequestData(base.service, base.operation, invocation.Arguments),
+                                            CancellationToken.None);
 
             invocation.ReturnValue = this.processResponseTask(responseTask);
         }
@@ -115,7 +121,9 @@ namespace ServiceProxy.Internal
 
         public override void Intercept(IInvocation invocation)
         {
-            var responseTask = this.client.Request(new RequestData(base.service, base.operation, invocation.Arguments.Take(invocation.Arguments.Length -2).ToArray()));
+            var responseTask = this.client.Request(
+                                            new RequestData(base.service, base.operation, invocation.Arguments.Take(invocation.Arguments.Length -2).ToArray()),
+                                            CancellationToken.None);
 
             var asyncCallback = invocation.Arguments[invocation.Arguments.Length - 2] as AsyncCallback;
             var asyncState = invocation.Arguments[invocation.Arguments.Length - 1];

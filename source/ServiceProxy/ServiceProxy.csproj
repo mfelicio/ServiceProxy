@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Internal\TimeoutClient.cs" />
     <Compile Include="IServiceFactory.cs" />
     <Compile Include="ResponseData.cs" />
     <Compile Include="RequestData.cs" />

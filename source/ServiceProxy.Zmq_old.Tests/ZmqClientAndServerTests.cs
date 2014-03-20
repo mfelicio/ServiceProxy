@@ -98,6 +98,12 @@ namespace ServiceProxy.Zmq.Tests
                         err = Assert.Catch(async () => await Task.Factory.FromAsync(serviceClient.BeginFail, serviceClient.EndFail, null));
                         Assert.IsNotNull(err);
                         Assert.IsNotInstanceOf<AggregateException>(err);
+
+                        //Timeout exceptions
+                        var factoryWithTimeout = new ServiceClientFactory(client);
+                        var serviceClientWithTimeout = factoryWithTimeout.CreateServiceClient<ITestService>(50); //50ms
+
+                        Assert.Throws<TimeoutException>(async () => await serviceClientWithTimeout.ReplyAfter(100));
                     }
                 }
             }

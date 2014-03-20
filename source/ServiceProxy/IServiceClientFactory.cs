@@ -8,7 +8,7 @@ namespace ServiceProxy
 {
     public interface IServiceClientFactory
     {
-        TService CreateServiceClient<TService>() where TService : class;
-        object CreateServiceClient(Type serviceType);
+        TService CreateServiceClient<TService>(int? timeout = null) where TService : class;
+        object CreateServiceClient(Type serviceType, int? timeout = null);
     }
 }

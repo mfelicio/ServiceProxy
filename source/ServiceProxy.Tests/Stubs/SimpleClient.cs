@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServiceProxy.Tests.Stubs
@@ -15,7 +16,7 @@ namespace ServiceProxy.Tests.Stubs
             this.serviceFactory = serviceFactory;
         }
 
-        public Task<ResponseData> Request(RequestData request)
+        public Task<ResponseData> Request(RequestData request, CancellationToken token)
         {
             var svc = this.serviceFactory.CreateService(request.Service);
             var responseTask = svc.Process(request);

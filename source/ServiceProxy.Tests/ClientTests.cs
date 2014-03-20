@@ -19,11 +19,11 @@ namespace ServiceProxy.Tests
 
         }
 
-        private void SetupClient(Mock<IClient> clientMock)
+        private void SetupClient(Mock<IClient> clientMock, int? timeToReply = null)
         {
-            clientMock.Setup(c => c.Request(It.IsAny<RequestData>()))
+            clientMock.Setup(c => c.Request(It.IsAny<RequestData>(), It.IsAny<CancellationToken>()))
                       .Returns(
-                        (RequestData request) =>
+                        (RequestData request, CancellationToken token) =>
                         {
                             Task<ResponseData> responseTask;
 
@@ -43,7 +43,14 @@ namespace ServiceProxy.Tests
                                 throw new NotSupportedException("Only sum and Concatenate are supported in this mock");
                             }
 
-                            return responseTask;
+                            if (timeToReply.HasValue)
+                            {
+                                return Task.Delay(timeToReply.Value).ContinueWith(t => responseTask).Unwrap();
+                            }
+                            else
+                            {
+                                return responseTask;
+                            }
                         });
         }
 
@@ -77,6 +84,18 @@ namespace ServiceProxy.Tests
             var concatenated = serviceClient.Concatenate("10", "01");
             Assert.That(concatenated.Result, Is.EqualTo("1001"));
 
+        }
+
+        [Test]
+        public void CanHandleTimeouts()
+        {
+            var clientMock = new Mock<IClient>();
+            this.SetupClient(clientMock, 100); //takes 100ms to reply
+
+            var factory = new ServiceClientFactory(clientMock.Object);
+            var serviceClient = factory.CreateServiceClient<ITestService>(50); //50ms timeout
+
+            Assert.Throws<TimeoutException>(() => serviceClient.Sum(10, 5));
         }
     }
 }

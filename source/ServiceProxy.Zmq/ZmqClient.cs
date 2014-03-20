@@ -43,7 +43,7 @@ namespace ServiceProxy.Zmq
             this.requestsQueue = new BlockingCollection<byte[]>(new ConcurrentQueue<byte[]>(), int.MaxValue);
         }
 
-        public Task<ResponseData> Request(RequestData request)
+        public Task<ResponseData> Request(RequestData request, CancellationToken token)
         {
             this.EnsureIsRunning();
 
@@ -59,6 +59,15 @@ namespace ServiceProxy.Zmq
 
                 this.requestsQueue.TryAdd(zmqRequestBytes);
             });
+
+            if (token != CancellationToken.None)
+            {
+                token.Register(() =>
+                {
+                    TaskCompletionSource<ResponseData> _;
+                    this.requestCallbacks.TryRemove(requestId, out _);
+                });
+            }
 
             return callback.Task;
         }
