@@ -103,9 +103,7 @@ namespace ServiceProxy.Zmq.Tests
                         var factoryWithTimeout = new ServiceClientFactory(client);
                         var serviceClientWithTimeout = factoryWithTimeout.CreateServiceClient<ITestService>(50); //50ms
 
-                        Assert.Throws<TimeoutException>(async () => await serviceClientWithTimeout.ReplyAfter(100));
-
-                        await Task.Delay(100000);
+                        Assert.Throws<TimeoutException>(async () => await serviceClientWithTimeout.ReplyAfter(1000));
                     }
                 }
             }

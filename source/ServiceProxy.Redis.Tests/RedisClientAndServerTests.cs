@@ -109,7 +109,7 @@ namespace ServiceProxy.Redis.Tests
                     var factoryWithTimeout = new ServiceClientFactory(client);
                     var serviceClientWithTimeout = factoryWithTimeout.CreateServiceClient<ITestService>(50); //50ms
 
-                    Assert.Throws<TimeoutException>(async () => await serviceClientWithTimeout.ReplyAfter(100));
+                    Assert.Throws<TimeoutException>(async () => await serviceClientWithTimeout.ReplyAfter(1000));
                 }
             }
         }

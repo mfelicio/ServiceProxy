@@ -90,7 +90,7 @@ namespace ServiceProxy.Tests
         public void CanHandleTimeouts()
         {
             var clientMock = new Mock<IClient>();
-            this.SetupClient(clientMock, 100); //takes 100ms to reply
+            this.SetupClient(clientMock, 1000); //takes 100ms to reply
 
             var factory = new ServiceClientFactory(clientMock.Object);
             var serviceClient = factory.CreateServiceClient<ITestService>(50); //50ms timeout
