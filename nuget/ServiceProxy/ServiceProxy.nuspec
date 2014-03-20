@@ -2,15 +2,14 @@
 <package >
   <metadata>
     <id>ServiceProxy</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>ServiceProxy</title>
     <authors>Manuel Felicio</authors>
     <owners>Manuel Felicio</owners>
     <licenseUrl>http://opensource.org/licenses/mit-license.php</licenseUrl>
     <projectUrl>http://github.com/mfelicio/ServiceProxy</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>ServiceProxy is a lightweight asynchronous proxy that allows you to use service contracts in a request/reply manner with your favorite messaging framework. </description>
-    <releaseNotes>First public release.</releaseNotes>
+    <description>ServiceProxy is a lightweight asynchronous service proxy that allows you to use service contracts in a request/reply manner with your favorite messaging framework. </description>
     <copyright>Copyright 2014 Manuel Felício</copyright>
     <tags>messaging services proxy interceptor request reply async asynchronous</tags>
     <dependencies>

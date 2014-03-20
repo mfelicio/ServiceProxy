@@ -19,7 +19,9 @@ ServiceProxy doesn't require any configuration.
 
 ## Getting started
 
-The quickest way to get started with ServiceProxy is by using the [NuGet package][serviceproxy-nuget]. You may also use one of the bundled request/reply messaging frameworks available in the source code [ServiceProxy.Redis][serviceproxy.redis-github] and [ServiceProxy.Zmq][serviceproxy.zmq-github].
+The quickest way to get started with ServiceProxy is by using the [NuGet package][serviceproxy-nuget]. You may also use one of the bundled request/reply messaging frameworks available in the source code [ServiceProxy.Redis][serviceproxy.redis-github] and [ServiceProxy.Zmq][serviceproxy.zmq-github]. 
+
+The latest stable version is 1.0.1. For more information, visit the [Release notes][serviceproxy-releasenotes-github] page.
 
 ## Why use ServiceProxy
 
@@ -49,5 +51,6 @@ ServiceProxy is licensed under the [MIT][serviceproxy-license] license.
 [serviceproxy.redis-github]: https://github.com/mfelicio/ServiceProxy/tree/master/source/ServiceProxy.Redis
 [serviceproxy.zmq-github]: https://github.com/mfelicio/ServiceProxy/tree/master/source/ServiceProxy.Zmq
 [serviceproxy-issues-github]: https://github.com/mfelicio/ServiceProxy/issues
+[serviceproxy-releasenotes-github]: https://github.com/mfelicio/ServiceProxy/CHANGELOG.md
 [castle.core-github]: https://github.com/castleproject/Core
 [serviceproxy-license]: http://opensource.org/licenses/mit-license.php

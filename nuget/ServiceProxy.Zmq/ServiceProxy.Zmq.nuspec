@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ServiceProxy.Zmq</id>
-    <version>1.0.1-beta</version>
+    <version>1.1.0-beta</version>
     <title>ServiceProxy.Zmq</title>
     <authors>Manuel Felicio</authors>
     <owners>Manuel Felicio</owners>
@@ -10,11 +10,10 @@
     <projectUrl>http://github.com/mfelicio/ServiceProxy</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>ServiceProxy.Zmq is a scalable request/reply messaging framework built with ZeroMQ that supports service contracts using ServiceProxy.</description>
-    <releaseNotes>First public release.</releaseNotes>
     <copyright>Copyright 2014 Manuel Felício</copyright>
     <tags>zmq zeromq 0mq messaging services request reply proxy async asynchronous</tags>
     <dependencies>
-      <dependency id="ServiceProxy" version="1.0.0" />
+      <dependency id="ServiceProxy" version="1.0.1" />
       <dependency id="clrzmq" version="3.0.0-rc1" />
     </dependencies>
   </metadata>
