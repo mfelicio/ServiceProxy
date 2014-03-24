@@ -45,6 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="Polling\ZmqPollBroker.cs" />
+    <Compile Include="Polling\ZmqPollClient.cs" />
+    <Compile Include="Polling\ZmqPollServer.cs" />
     <Compile Include="ZmqBroker.cs" />
     <Compile Include="ZmqClient.cs">
       <SubType>

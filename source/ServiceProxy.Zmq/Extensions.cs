@@ -88,5 +88,19 @@ namespace ServiceProxy.Zmq
 
             return socket;
         }
+
+        public static ZeroMQ.ZmqSocket CreateNonBlockingSocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType, TimeSpan timeout)
+        {
+            var socket = context.CreateSocket(socketType);
+
+            socket.ReceiveTimeout = timeout;
+
+            socket.ReceiveHighWatermark = 0;
+            socket.SendHighWatermark = 0;
+
+            socket.Linger = TimeSpan.FromMilliseconds(0);
+
+            return socket;
+        }
     }
 }
