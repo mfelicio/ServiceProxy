@@ -94,6 +94,7 @@ namespace ServiceProxy.Zmq.Polling
                 //Connect to outbound address
                 socket.Connect(this.brokerFrontendAddress);
 
+                //these variables are a hack to ensure safe usage inside the socket events.
                 var canSend = false;
                 var canReceive = false;
                 int? tryTakeTimeout = null;

@@ -59,56 +59,66 @@ namespace ServiceProxy.Zmq.Polling
 
         private void SendReceive()
         {
-            using (var socket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(1)))
+            using (var socket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
             {
                 //Connect to inbound address
                 socket.Connect(this.brokerBackendAddress);
-                
+
                 byte[] buffer = new byte[1024];
 
-                var canSend = false;
-                var canReceive = false;
+                //these variables are a hack to ensure safe usage inside the socket events.
+                var sendTimeoutIncr = 10;
+                var sendTimeoutMax = 100;
+                var sendTimeout = 0;
 
                 socket.ReceiveReady += (s, e) =>
                 {
-                    if (canReceive)
-                    {
-                        byte[] callerId;
-                        byte[] requestBytes;
+                    byte[] callerId;
+                    byte[] requestBytes;
 
-                        int readBytes;
-                        callerId = e.Socket.Receive(buffer, out readBytes);
-                        if (readBytes > 0)
-                        {
-                            callerId = callerId.Slice(readBytes);
-                            requestBytes = e.Socket.Receive(buffer, out readBytes);
-                            this.OnRequest(callerId, requestBytes.Slice(readBytes));
-                        }
+                    int readBytes;
+                    callerId = e.Socket.Receive(buffer, out readBytes);
+                    if (readBytes > 0)
+                    {
+                        callerId = callerId.Slice(readBytes);
+                        requestBytes = e.Socket.Receive(buffer, out readBytes);
+                        this.OnRequest(callerId, requestBytes.Slice(readBytes));
                     }
+
+                    sendTimeout = 0;
                 };
 
                 socket.SendReady += (s, e) =>
                 {
-                    if (canSend)
+                    //This delegate shouldn't need to be invoked when there are no items in the responsesQueue
+
+                    //Tweaking the sendTimeout and blocking for longer periods on TryTake
+                    //is a hack because the current clrzmq binding version doesn't support
+                    //polling on the socket's output event directly. The previous version supported it.
+                    Tuple<byte[], byte[]> response;
+                    if (sendTimeout != 0 ?
+                        this.responsesQueue.TryTake(out response, sendTimeout) :
+                        this.responsesQueue.TryTake(out response))
                     {
-                        Tuple<byte[], byte[]> response;
-                        while (this.responsesQueue.TryTake(out response))
+                        e.Socket.SendMore(response.Item1); //callerId
+                        e.Socket.Send(response.Item2); //response
+                    }
+                    else
+                    {
+                        if (sendTimeout < sendTimeoutMax)
                         {
-                            e.Socket.SendMore(response.Item1); //callerId
-                            e.Socket.Send(response.Item2); //response
+                            sendTimeout += sendTimeoutIncr;
                         }
                     }
                 };
 
+                //previous clrzmq binding supported different pollitems, per socket-event type and not per socket only
                 var poller = new ZeroMQ.Poller(new ZeroMQ.ZmqSocket[] { socket });
                 var pollTimeout = TimeSpan.FromMilliseconds(10);
 
                 while (Interlocked.Read(ref this.running) == 1)
                 {
-                    canSend = responsesQueue.Count > 0;
-                    canReceive = true;
-
-                    poller.Poll(pollTimeout);    
+                    poller.Poll(pollTimeout);
                 }
             }
         }

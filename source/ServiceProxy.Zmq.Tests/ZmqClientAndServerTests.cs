@@ -181,8 +181,6 @@ namespace ServiceProxy.Zmq.Tests
 
                         Assert.True(tasks.All(t => t.Result.Count() == 7));
                     }
-
-                    await Task.Delay(1000000);
                 }
                 finally
                 {
@@ -227,8 +225,6 @@ namespace ServiceProxy.Zmq.Tests
                         await Task.WhenAll(tasks);
 
                         Assert.True(tasks.All(t => t.Result.Count() == 7));
-
-                        await Task.Delay(1000000);
                     }
 
                 }
