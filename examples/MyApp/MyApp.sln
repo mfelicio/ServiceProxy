@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp.Services", "MyApp.Services\MyApp.Services.csproj", "{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp.WebAPI", "MyApp.WebAPI\MyApp.WebAPI.csproj", "{4601D984-A560-4A6D-8CBF-EB6ABD48072C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp.Services.InMemory", "MyApp.Services.InMemory\MyApp.Services.InMemory.csproj", "{494FF8D6-29D6-40F7-ADFD-E81589B36096}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{189210D8-4F41-4125-A72B-11AA3BACEBB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp.Broker", "MyApp.Broker\MyApp.Broker.csproj", "{8CEACCED-2FA6-4CE6-8983-D87865DF344D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp.Worker", "MyApp.Worker\MyApp.Worker.csproj", "{EFF5E964-646E-4291-B9F5-42A85FF9039E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{9FF34859-021B-431A-BAEA-87A3464F2267}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{A625C772-BD98-4141-AE9E-C11097165033}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{12631B50-4DD7-4245-B7DA-79E9ED912C77}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4601D984-A560-4A6D-8CBF-EB6ABD48072C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4601D984-A560-4A6D-8CBF-EB6ABD48072C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4601D984-A560-4A6D-8CBF-EB6ABD48072C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4601D984-A560-4A6D-8CBF-EB6ABD48072C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{494FF8D6-29D6-40F7-ADFD-E81589B36096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{494FF8D6-29D6-40F7-ADFD-E81589B36096}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{494FF8D6-29D6-40F7-ADFD-E81589B36096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{494FF8D6-29D6-40F7-ADFD-E81589B36096}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CEACCED-2FA6-4CE6-8983-D87865DF344D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CEACCED-2FA6-4CE6-8983-D87865DF344D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CEACCED-2FA6-4CE6-8983-D87865DF344D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CEACCED-2FA6-4CE6-8983-D87865DF344D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFF5E964-646E-4291-B9F5-42A85FF9039E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFF5E964-646E-4291-B9F5-42A85FF9039E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFF5E964-646E-4291-B9F5-42A85FF9039E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFF5E964-646E-4291-B9F5-42A85FF9039E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CB34E9EF-7223-44A7-AFB1-C0B89DE4B26A} = {9FF34859-021B-431A-BAEA-87A3464F2267}
+		{4601D984-A560-4A6D-8CBF-EB6ABD48072C} = {A625C772-BD98-4141-AE9E-C11097165033}
+		{494FF8D6-29D6-40F7-ADFD-E81589B36096} = {189210D8-4F41-4125-A72B-11AA3BACEBB8}
+		{8CEACCED-2FA6-4CE6-8983-D87865DF344D} = {189210D8-4F41-4125-A72B-11AA3BACEBB8}
+		{EFF5E964-646E-4291-B9F5-42A85FF9039E} = {189210D8-4F41-4125-A72B-11AA3BACEBB8}
+	EndGlobalSection
+EndGlobal
