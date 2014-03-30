@@ -33,7 +33,7 @@ You can contribute by creating a ServiceProxy.[YourFavoriteMessageBus] and submi
 
 ### Examples
 
-I'll try to create real examples and add them to the source code. If you would like to post examples let me know.
+A complete WebAPI example using a service layer can be found [here][serviceproxy-examples-myapp]. If you would like to contribute with examples let me know.
 
 ### Issues
 
@@ -54,3 +54,4 @@ ServiceProxy is licensed under the [MIT][serviceproxy-license] license.
 [serviceproxy-releasenotes-github]: https://github.com/mfelicio/ServiceProxy/blob/master/CHANGELOG.md
 [castle.core-github]: https://github.com/castleproject/Core
 [serviceproxy-license]: http://opensource.org/licenses/mit-license.php
+[serviceproxy-examples-myapp]: https://github.com/mfelicio/ServiceProxy/tree/master/examples/MyApp
