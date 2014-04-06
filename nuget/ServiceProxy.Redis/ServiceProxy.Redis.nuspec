@@ -2,19 +2,19 @@
 <package >
   <metadata>
     <id>ServiceProxy.Redis</id>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <title>ServiceProxy.Redis</title>
     <authors>Manuel Felicio</authors>
     <owners>Manuel Felicio</owners>
     <licenseUrl>http://opensource.org/licenses/mit-license.php</licenseUrl>
     <projectUrl>http://github.com/mfelicio/ServiceProxy</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>ServiceProxy.Redis is a simple request/reply messaging framework built on Redis queues that support service contracts using ServiceProxy.</description>
+    <description>ServiceProxy.Redis is a simple request/reply messaging framework built on Redis queues that support service contracts using ServiceProxy and the StackExchange.Redis library.</description>
     <copyright>Copyright 2014 Manuel Felício</copyright>
     <tags>redis messaging services request reply proxy async asynchronous</tags>
     <dependencies>
       <dependency id="ServiceProxy" version="1.0.1" />
-      <dependency id="BookSleeve" version="1.3.41" />
+      <dependency id="StackExchange.Redis" version="1.0.247" />
     </dependencies>
   </metadata>
 </package>

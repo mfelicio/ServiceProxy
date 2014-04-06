@@ -1,4 +1,5 @@
 ﻿using ServiceProxy;
+using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,9 +12,9 @@ namespace ServiceProxy.Redis
 {
     public class RedisClient : IClient, IDisposable
     {
-        private readonly RedisDuplexConnection connection;
+        private readonly RedisConnection connection;
 
-        private readonly string[] receiveQueues;
+        private readonly string receiveQueue;
         private readonly string sendQueue;
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<ResponseData>> requestCallbacks;
@@ -22,10 +23,10 @@ namespace ServiceProxy.Redis
         private long receiveState;
         private volatile Task receiveTask;
 
-        public RedisClient(RedisDuplexConnection connection, string receiveQueue, string sendQueue)
+        public RedisClient(RedisConnection connection, string receiveQueue, string sendQueue)
         {
             this.connection = connection;
-            this.receiveQueues = new string[] { receiveQueue };
+            this.receiveQueue = receiveQueue;
             this.sendQueue = sendQueue;
             this.nextId = 0;
             this.receiveState = 0;
@@ -43,10 +44,11 @@ namespace ServiceProxy.Redis
 
             var requestId = this.NextId();
 
-            var redisRequest = new RedisRequest(this.receiveQueues[0], requestId, request);
+            var redisRequest = new RedisRequest(this.receiveQueue, requestId, request);
             var redisRequestBytes = redisRequest.ToBinary();
 
-            this.connection.Sender.Lists.AddFirst(0, this.sendQueue, redisRequestBytes);
+            var redis = this.connection.GetClient();
+            var lpushTask = redis.ListLeftPushAsync(sendQueue, redisRequestBytes);
 
             var callback = new TaskCompletionSource<ResponseData>();
             this.requestCallbacks[requestId] = callback;
@@ -55,10 +57,17 @@ namespace ServiceProxy.Redis
             {
                 token.Register(() =>
                 {
-                    TaskCompletionSource<ResponseData> _;
-                    this.requestCallbacks.TryRemove(requestId, out _);
+                    this.OnRequestCancelled(requestId);
                 });
             }
+
+            lpushTask.ContinueWith(t =>
+            {
+                if (lpushTask.Exception != null)
+                {
+                    this.OnRequestError(requestId, lpushTask.Exception.InnerException);
+                }
+            });
 
             return callback.Task;
         }
@@ -81,28 +90,54 @@ namespace ServiceProxy.Redis
 
         private async Task Receive()
         {
+            int delayTimeout = 1;
+            byte[] rawResponse;
+
+            var redis = this.connection.GetClient();
+
             while (Interlocked.Read(ref this.receiveState) == 1)
             {
-                var rawResponse = await this.connection.Receiver.Lists.BlockingRemoveLast(0, this.receiveQueues, 1);
+                rawResponse = await redis.ListRightPopAsync(receiveQueue).IgnoreException(typeof(RedisException));
                 if (rawResponse == null)
                 {
+                    await Task.Delay(delayTimeout);
+                    //maybe increase delayTimeout a little bit?
                     continue;
                 }
 
+                var redisResponseBytes = rawResponse;
+
                 Task.Run(() =>
                 {
-                    var redisResponseBytes = rawResponse.Item2;
                     var redisResponse = RedisResponse.FromBinary(redisResponseBytes);
-
-                    TaskCompletionSource<ResponseData> callback;
-                    if (this.requestCallbacks.TryRemove(redisResponse.RequestId, out callback))
-                    {
-                        callback.SetResult(redisResponse.Response);
-                    }
-
+                    this.OnResponse(redisResponse);
                 });
             }
 
+        }
+
+        private void OnResponse(RedisResponse redisResponse)
+        {
+            TaskCompletionSource<ResponseData> callback;
+            if (this.requestCallbacks.TryRemove(redisResponse.RequestId, out callback))
+            {
+                callback.SetResult(redisResponse.Response);
+            }
+        }
+
+        private void OnRequestError(string requestId, Exception exception)
+        {
+            TaskCompletionSource<ResponseData> callback;
+            if (this.requestCallbacks.TryRemove(requestId, out callback))
+            {
+                callback.TrySetException(exception);
+            }
+        }
+
+        private void OnRequestCancelled(string requestId)
+        {
+            TaskCompletionSource<ResponseData> _;
+            this.requestCallbacks.TryRemove(requestId, out _);
         }
 
         public void Dispose()

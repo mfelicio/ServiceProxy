@@ -14,11 +14,11 @@ public async void TestSendAndReceive()
 {
     var resolver = new DependencyResolver();
 
-    using (var server = new RedisServer(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
+    using (var server = new RedisServer(new RedisConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
     {
         server.Listen();
 
-        using (var client = new RedisClient(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
+        using (var client = new RedisClient(new RedisConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
         {
             var clientFactory = new ServiceProxy.ServiceClientFactory(client);
 
@@ -40,7 +40,8 @@ It supports load balancing by having multiple servers listening on the same Redi
 
 ## Dependencies
 
-ServiceProxy.Redis uses the [Booksleeve][booksleeve-home] Redis client library, which has a Task based asynchronous API for all redis commands, integrating nicely with ServiceProxy.
+ServiceProxy.Redis now uses the [StackExchange.Redis][stackexchange.redis-github] client library, the successor of the [Booksleeve][booksleeve-home] Redis client library.
 
 [serviceproxy.redis-nuget]: http://www.nuget.org/packages/ServiceProxy.Redis
 [booksleeve-home]: https://code.google.com/p/booksleeve/
+[stackexchange.redis-github]: https://github.com/StackExchange/StackExchange.Redis

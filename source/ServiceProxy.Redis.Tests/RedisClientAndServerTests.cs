@@ -50,11 +50,11 @@ namespace ServiceProxy.Redis.Tests
         {
             var resolver = new DependencyResolver();
 
-            using (var server = new RedisServer(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
+            using (var server = new RedisServer(new RedisConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
             {
                 server.Listen();
 
-                using (var client = new RedisClient(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
+                using (var client = new RedisClient(new RedisConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
                 {
                     var clientFactory = new ServiceProxy.ServiceClientFactory(client);
 
@@ -80,11 +80,11 @@ namespace ServiceProxy.Redis.Tests
         {
             var resolver = new DependencyResolver();
 
-            using (var server = new RedisServer(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
+            using (var server = new RedisServer(new RedisConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
             {
                 server.Listen();
 
-                using (var client = new RedisClient(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
+                using (var client = new RedisClient(new RedisConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
                 {
                     var clientFactory = new ServiceClientFactory(client);
 
@@ -117,21 +117,21 @@ namespace ServiceProxy.Redis.Tests
         [Test]
         [TestCase(1, 1000)]
         [TestCase(2, 10000)]
-        //[TestCase(4, 100000)]
+        [TestCase(2, 100000)]
         //[TestCase(5, 1000000)]
         public async void TestLoadBalancing(int nServers, int nMsgs)
         {
             var resolver = new DependencyResolver();
 
             var servers = Enumerable.Range(0, nServers)
-                                    .Select(i => new RedisServer(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
+                                    .Select(i => new RedisServer(new RedisConnection(RedisHost, RedisPort, RedisPassword), ServerQueue, new ServiceFactory(resolver)))
                                     .ToArray();
 
             try
             {
                 foreach (var server in servers) server.Listen();
 
-                using (var client = new RedisClient(new RedisDuplexConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
+                using (var client = new RedisClient(new RedisConnection(RedisHost, RedisPort, RedisPassword), ClientQueue, ServerQueue))
                 {
                     var clientFactory = new ServiceClientFactory(client);
 

@@ -39,4 +39,24 @@ namespace ServiceProxy.Redis
             }
         }
     }
+
+    static class TaskExtensions
+    {
+        public static async Task<T> IgnoreException<T>(this Task<T> task, params Type[] exceptionTypes)
+        {
+            try
+            {
+                return await task;
+            }
+            catch (Exception ex)
+            {
+                if (exceptionTypes.Any(type => type.IsAssignableFrom(ex.GetType())))
+                {
+                    return default(T);
+                }
+
+                throw;
+            }
+        }
+    }
 }
