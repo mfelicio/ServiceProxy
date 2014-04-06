@@ -13,7 +13,7 @@ namespace Server
         {
             var serviceFactory = new ServiceProxy.ServiceFactory(new SimpleDependencyResolver());
 
-            using (var server = new RedisServer(new RedisDuplexConnection("localhost"), "ThisIsTheServiceQueue", serviceFactory))
+            using (var server = new RedisServer(new RedisConnection("localhost"), "ThisIsTheServiceQueue", serviceFactory))
             {
                 server.Listen();
 

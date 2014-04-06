@@ -14,7 +14,7 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            using (var client = new RedisClient(new RedisDuplexConnection("localhost"), "ThisIsTheClientQueue", "ThisIsTheServiceQueue"))
+            using (var client = new RedisClient(new RedisConnection("localhost"), "ThisIsTheClientQueue", "ThisIsTheServiceQueue"))
             {
                 var clientFactory = new ServiceProxy.ServiceClientFactory(client);
 
@@ -54,7 +54,7 @@ namespace Client
 
         static async Task SimpleBenchmark(IFooService fooService)
         {
-            var nCalls = 10 * 1000;
+            var nCalls = 100 * 1000;
 
             var random = new Random();
 

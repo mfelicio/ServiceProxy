@@ -34,17 +34,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BookSleeve">
-      <HintPath>..\packages\BookSleeve.1.3.41\lib\BookSleeve.dll</HintPath>
-    </Reference>
     <Reference Include="Castle.Core">
       <HintPath>..\packages\Castle.Core.3.2.2\lib\net45\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="ServiceProxy">
       <HintPath>..\packages\ServiceProxy.1.0.1\lib\net45\ServiceProxy.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceProxy.Redis">
-      <HintPath>..\packages\ServiceProxy.Redis.1.0.1\lib\net45\ServiceProxy.Redis.dll</HintPath>
+    <Reference Include="ServiceProxy.Redis, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceProxy.Redis.1.1.0\lib\net45\ServiceProxy.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="StackExchange.Redis, Version=1.0.247.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\StackExchange.Redis.1.0.247\lib\StackExchange.Redis.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
