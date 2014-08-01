@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZeroMQ;
 
 namespace ServiceProxy.Zmq
 {
@@ -13,7 +14,7 @@ namespace ServiceProxy.Zmq
         private readonly string inboundAddress;
         private readonly string outboundAddress;
 
-        private readonly ZMQ.Context zmqContext;
+        private readonly ZeroMQ.ZmqContext zmqContext;
         private readonly Guid identity;
 
         private long running;
@@ -25,7 +26,7 @@ namespace ServiceProxy.Zmq
 
         private readonly BlockingCollection<byte[]> requestsQueue;
 
-        public ZmqClient(ZMQ.Context zmqContext,
+        public ZmqClient(ZeroMQ.ZmqContext zmqContext,
                          string inboundAddress,
                          string outboundAddress)
         {
@@ -97,7 +98,7 @@ namespace ServiceProxy.Zmq
 
         private void SendRequests()
         {
-            using (var outboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+            using (var outboundSocket = this.zmqContext.CreateWriteonlySocket(ZeroMQ.SocketType.DEALER))
             {
                 //Same identity as inbound socket
                 outboundSocket.Identity = this.identity.ToByteArray();
@@ -110,7 +111,7 @@ namespace ServiceProxy.Zmq
                 {
                     while (this.requestsQueue.TryTake(out request, 100))
                     {
-                        outboundSocket.Send(request, ZMQ.SendRecvOpt.NOBLOCK);
+                        outboundSocket.Send(request);
                     }
                 }
             }
@@ -118,7 +119,7 @@ namespace ServiceProxy.Zmq
 
         private void ReceiveResponses()
         {
-            using (var inboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+            using (var inboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
             {
                 //Same identity as outbound socket
                 inboundSocket.Identity = this.identity.ToByteArray();
@@ -126,15 +127,16 @@ namespace ServiceProxy.Zmq
                 //Connect to inbound address
                 inboundSocket.Connect(this.inboundAddress);
 
-                var timeout = 100;
+                byte[] buffer = new byte[1024];
+                int readBytes;
 
                 byte[] response;
                 while (Interlocked.Read(ref this.running) == 1)
                 {
-                    response = inboundSocket.Recv(timeout);
-                    if (response != null)
+                    response = inboundSocket.Receive(buffer, out readBytes);
+                    if (readBytes > 0)
                     {
-                        this.OnResponse(response);
+                        this.OnResponse(response.Slice(readBytes));
                     }
                 }
             }

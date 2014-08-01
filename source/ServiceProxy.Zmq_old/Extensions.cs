@@ -10,6 +10,11 @@ namespace ServiceProxy.Zmq
 {
     static class ArrayExtensions
     {
+        public static T[] Slice<T>(this T[] data, int length)
+        {
+            return data.Slice(0, length);
+        }
+
         public static T[] Slice<T>(this T[] data, int index, int length)
         {
             T[] slice = new T[length];
@@ -42,7 +47,7 @@ namespace ServiceProxy.Zmq
 
     static class ZmqContextExtensions
     {
-        public static Guid NewIdentity(this ZMQ.Context context)
+        public static Guid NewIdentity(this ZeroMQ.ZmqContext context)
         {
             Guid identity;
             while (true)
@@ -53,6 +58,49 @@ namespace ServiceProxy.Zmq
                     return identity;
                 }
             }
+        }
+
+        public static ZeroMQ.ZmqSocket CreateNonBlockingReadonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType, TimeSpan receiveTimeout)
+        {
+            var socket = CreateReadonlySocket(context, socketType);
+
+            socket.ReceiveTimeout = receiveTimeout;
+
+            return socket;
+        }
+
+        public static ZeroMQ.ZmqSocket CreateReadonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType)
+        {
+            var socket = context.CreateSocket(socketType);
+
+            socket.ReceiveHighWatermark = 0;
+            socket.Linger = TimeSpan.FromMilliseconds(0);
+
+            return socket;
+        }
+
+        public static ZeroMQ.ZmqSocket CreateWriteonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType)
+        {
+            var socket = context.CreateSocket(socketType);
+
+            socket.SendHighWatermark = 0;
+            socket.Linger = TimeSpan.FromMilliseconds(0);
+
+            return socket;
+        }
+
+        public static ZeroMQ.ZmqSocket CreateNonBlockingSocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType, TimeSpan timeout)
+        {
+            var socket = context.CreateSocket(socketType);
+
+            socket.ReceiveTimeout = timeout;
+
+            socket.ReceiveHighWatermark = 0;
+            socket.SendHighWatermark = 0;
+
+            socket.Linger = TimeSpan.FromMilliseconds(0);
+
+            return socket;
         }
     }
 }

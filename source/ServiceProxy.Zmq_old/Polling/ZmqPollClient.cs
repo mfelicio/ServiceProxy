@@ -1,11 +1,11 @@
-﻿using Castle.Zmq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZeroMQ;
 
 namespace ServiceProxy.Zmq.Polling
 {
@@ -13,7 +13,7 @@ namespace ServiceProxy.Zmq.Polling
     {
         private readonly string brokerFrontendAddress;
 
-        private readonly IZmqContext zmqContext;
+        private readonly ZeroMQ.ZmqContext zmqContext;
 
         private long running;
         private volatile Task sendReceiveTask;
@@ -23,7 +23,7 @@ namespace ServiceProxy.Zmq.Polling
 
         private readonly BlockingCollection<byte[]> requestsQueue;
 
-        public ZmqPollClient(IZmqContext zmqContext,
+        public ZmqPollClient(ZeroMQ.ZmqContext zmqContext,
                          string brokerFrontendAddress)
         {
             this.zmqContext = zmqContext;
@@ -89,7 +89,7 @@ namespace ServiceProxy.Zmq.Polling
 
         private void SendReceive()
         {
-            using (var socket = this.zmqContext.CreateNonBlockingSocket(SocketType.Dealer, TimeSpan.FromMilliseconds(1)))
+            using (var socket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(1)))
             {
                 //Connect to outbound address
                 socket.Connect(this.brokerFrontendAddress);
@@ -99,38 +99,42 @@ namespace ServiceProxy.Zmq.Polling
                 var canReceive = false;
                 int? tryTakeTimeout = null;
 
-                var poller = new Castle.Zmq.Polling(PollingEvents.RecvReady | PollingEvents.SendReady, socket);
-
-                poller.SendReady = s =>
+                socket.SendReady += (s, e) =>
                 {
                     if (canSend)
                     {
                         byte[] request;
                         if (
-                            tryTakeTimeout.HasValue ?
-                                this.requestsQueue.TryTake(out request, tryTakeTimeout.Value) :
+                            tryTakeTimeout.HasValue ? 
+                                this.requestsQueue.TryTake(out request, tryTakeTimeout.Value) : 
                                 this.requestsQueue.TryTake(out request))
                         {
-                            s.Send(request);
+                            e.Socket.Send(request);
                         }
                     }
                 };
 
-                poller.RecvReady = s =>
+                byte[] buffer = new byte[1024];
+
+                socket.ReceiveReady += (s, e) =>
                 {
                     if (canReceive)
                     {
-                        byte[] response = s.Recv();
+                        int readBytes;
 
-                        if (response != null)
+                        byte[] response = e.Socket.Receive(buffer, out readBytes);
+
+                        if (readBytes > 0)
                         {
-                            this.OnResponse(response);
+                            this.OnResponse(response.Slice(readBytes));
                         }
                     }
                 };
 
-                var pollTimeout = 10; //ms
-
+                var poller = new ZeroMQ.Poller(new ZeroMQ.ZmqSocket[] { socket });
+                
+                var pollTimeout = TimeSpan.FromMilliseconds(10);
+                
                 while (Interlocked.Read(ref this.running) == 1)
                 {
                     tryTakeTimeout = null;

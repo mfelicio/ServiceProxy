@@ -1,11 +1,11 @@
-﻿using Castle.Zmq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZeroMQ;
 
 namespace ServiceProxy.Zmq.Polling
 {
@@ -13,7 +13,7 @@ namespace ServiceProxy.Zmq.Polling
     {
         private readonly string brokerBackendAddress;
 
-        private readonly IZmqContext zmqContext;
+        private readonly ZeroMQ.ZmqContext zmqContext;
 
         private long running;
         private volatile Task sendReceiveTask;
@@ -22,7 +22,7 @@ namespace ServiceProxy.Zmq.Polling
 
         private readonly IServiceFactory serviceFactory;
 
-        public ZmqPollServer(IZmqContext zmqContext,
+        public ZmqPollServer(ZeroMQ.ZmqContext zmqContext,
                          string brokerBackendAddress,
                          IServiceFactory serviceFactory)
         {
@@ -59,34 +59,36 @@ namespace ServiceProxy.Zmq.Polling
 
         private void SendReceive()
         {
-            using (var socket = this.zmqContext.CreateNonBlockingSocket(SocketType.Dealer, TimeSpan.FromMilliseconds(100)))
+            using (var socket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
             {
                 //Connect to inbound address
                 socket.Connect(this.brokerBackendAddress);
+
+                byte[] buffer = new byte[1024];
 
                 //these variables are a hack to ensure safe usage inside the socket events.
                 var sendTimeoutIncr = 10;
                 var sendTimeoutMax = 100;
                 var sendTimeout = 0;
 
-                var poller = new Castle.Zmq.Polling(PollingEvents.RecvReady | PollingEvents.SendReady, socket);
-
-                poller.RecvReady = s =>
+                socket.ReceiveReady += (s, e) =>
                 {
                     byte[] callerId;
                     byte[] requestBytes;
 
-                    callerId = s.Recv();
-                    if (callerId != null && s.HasMoreToRecv())
+                    int readBytes;
+                    callerId = e.Socket.Receive(buffer, out readBytes);
+                    if (readBytes > 0)
                     {
-                        requestBytes = s.Recv();
-                        this.OnRequest(callerId, requestBytes);
+                        callerId = callerId.Slice(readBytes);
+                        requestBytes = e.Socket.Receive(buffer, out readBytes);
+                        this.OnRequest(callerId, requestBytes.Slice(readBytes));
                     }
 
                     sendTimeout = 0;
                 };
 
-                poller.SendReady = s =>
+                socket.SendReady += (s, e) =>
                 {
                     //This delegate shouldn't need to be invoked when there are no items in the responsesQueue
 
@@ -98,8 +100,8 @@ namespace ServiceProxy.Zmq.Polling
                         this.responsesQueue.TryTake(out response, sendTimeout) :
                         this.responsesQueue.TryTake(out response))
                     {
-                        s.Send(response.Item1, hasMoreToSend: true); //callerId
-                        s.Send(response.Item2); //response
+                        e.Socket.SendMore(response.Item1); //callerId
+                        e.Socket.Send(response.Item2); //response
                     }
                     else
                     {
@@ -111,7 +113,8 @@ namespace ServiceProxy.Zmq.Polling
                 };
 
                 //previous clrzmq binding supported different pollitems, per socket-event type and not per socket only
-                var pollTimeout = 10; //ms
+                var poller = new ZeroMQ.Poller(new ZeroMQ.ZmqSocket[] { socket });
+                var pollTimeout = TimeSpan.FromMilliseconds(10);
 
                 while (Interlocked.Read(ref this.running) == 1)
                 {

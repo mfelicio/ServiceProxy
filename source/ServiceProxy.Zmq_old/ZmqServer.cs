@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZeroMQ;
 
 namespace ServiceProxy.Zmq
 {
@@ -13,7 +14,7 @@ namespace ServiceProxy.Zmq
         private readonly string inboundAddress;
         private readonly string outboundAddress;
 
-        private readonly ZMQ.Context zmqContext;
+        private readonly ZeroMQ.ZmqContext zmqContext;
         private readonly Guid identity;
 
         private long running;
@@ -24,7 +25,7 @@ namespace ServiceProxy.Zmq
 
         private readonly IServiceFactory serviceFactory;
 
-        public ZmqServer(ZMQ.Context zmqContext,
+        public ZmqServer(ZeroMQ.ZmqContext zmqContext,
                          string inboundAddress,
                          string outboundAddress,
                          IServiceFactory serviceFactory)
@@ -67,7 +68,7 @@ namespace ServiceProxy.Zmq
 
         private void ReceiveRequests()
         {
-            using (var inboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+            using (var inboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
             {
                 //Same identity as outbound socket
                 inboundSocket.Identity = this.identity.ToByteArray();
@@ -75,18 +76,20 @@ namespace ServiceProxy.Zmq
                 //Connect to inbound address
                 inboundSocket.Connect(this.inboundAddress);
 
-                var timeout = 100;
-
                 byte[] callerId;
                 byte[] requestBytes;
 
+                byte[] buffer = new byte[1024];
+                int readBytes;
+
                 while (Interlocked.Read(ref this.running) == 1)
                 {
-                    callerId = inboundSocket.Recv(timeout);
-                    if (callerId != null)
+                    callerId = inboundSocket.Receive(buffer, out readBytes); 
+                    if (readBytes > 0)
                     {
-                        requestBytes = inboundSocket.Recv();
-                        this.OnRequest(callerId, requestBytes);
+                        callerId = callerId.Slice(readBytes);
+                        requestBytes = inboundSocket.Receive(buffer, out readBytes);
+                        this.OnRequest(callerId, requestBytes.Slice(readBytes));
                     }
                 }
             }
@@ -94,7 +97,7 @@ namespace ServiceProxy.Zmq
 
         private void SendResponses()
         {
-            using (var outboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+            using (var outboundSocket = this.zmqContext.CreateWriteonlySocket(ZeroMQ.SocketType.DEALER))
             {
                 //Same identity as inbound socket
                 outboundSocket.Identity = this.identity.ToByteArray();
@@ -108,7 +111,7 @@ namespace ServiceProxy.Zmq
                     while (this.responsesQueue.TryTake(out response, 100))
                     {
                         outboundSocket.SendMore(response.Item1); //callerId
-                        outboundSocket.Send(response.Item2, ZMQ.SendRecvOpt.NOBLOCK); //response
+                        outboundSocket.Send(response.Item2); //response
                     }
                 }
             }

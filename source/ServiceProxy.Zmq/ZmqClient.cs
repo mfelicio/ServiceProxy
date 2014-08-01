@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Castle.Zmq;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ZeroMQ;
 
 namespace ServiceProxy.Zmq
 {
@@ -14,7 +14,7 @@ namespace ServiceProxy.Zmq
         private readonly string inboundAddress;
         private readonly string outboundAddress;
 
-        private readonly ZeroMQ.ZmqContext zmqContext;
+        private readonly IZmqContext zmqContext;
         private readonly Guid identity;
 
         private long running;
@@ -26,7 +26,7 @@ namespace ServiceProxy.Zmq
 
         private readonly BlockingCollection<byte[]> requestsQueue;
 
-        public ZmqClient(ZeroMQ.ZmqContext zmqContext,
+        public ZmqClient(IZmqContext zmqContext,
                          string inboundAddress,
                          string outboundAddress)
         {
@@ -98,10 +98,10 @@ namespace ServiceProxy.Zmq
 
         private void SendRequests()
         {
-            using (var outboundSocket = this.zmqContext.CreateWriteonlySocket(ZeroMQ.SocketType.DEALER))
+            using (var outboundSocket = this.zmqContext.CreateWriteonlySocket(SocketType.Dealer))
             {
                 //Same identity as inbound socket
-                outboundSocket.Identity = this.identity.ToByteArray();
+                outboundSocket.SetOption(SocketOpt.IDENTITY, this.identity.ToByteArray());
 
                 //Connect to outbound address
                 outboundSocket.Connect(this.outboundAddress);
@@ -119,24 +119,21 @@ namespace ServiceProxy.Zmq
 
         private void ReceiveResponses()
         {
-            using (var inboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
+            using (var inboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(SocketType.Dealer, TimeSpan.FromMilliseconds(100)))
             {
                 //Same identity as outbound socket
-                inboundSocket.Identity = this.identity.ToByteArray();
+                inboundSocket.SetOption(SocketOpt.IDENTITY, this.identity.ToByteArray());
 
                 //Connect to inbound address
                 inboundSocket.Connect(this.inboundAddress);
 
-                byte[] buffer = new byte[1024];
-                int readBytes;
-
                 byte[] response;
                 while (Interlocked.Read(ref this.running) == 1)
                 {
-                    response = inboundSocket.Receive(buffer, out readBytes);
-                    if (readBytes > 0)
+                    response = inboundSocket.Recv();
+                    if (response != null)
                     {
-                        this.OnResponse(response.Slice(readBytes));
+                        this.OnResponse(response);
                     }
                 }
             }

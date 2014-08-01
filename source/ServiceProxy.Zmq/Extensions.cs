@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Castle.Zmq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,7 +48,7 @@ namespace ServiceProxy.Zmq
 
     static class ZmqContextExtensions
     {
-        public static Guid NewIdentity(this ZeroMQ.ZmqContext context)
+        public static Guid NewIdentity(this IZmqContext context)
         {
             Guid identity;
             while (true)
@@ -60,45 +61,45 @@ namespace ServiceProxy.Zmq
             }
         }
 
-        public static ZeroMQ.ZmqSocket CreateNonBlockingReadonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType, TimeSpan receiveTimeout)
+        public static IZmqSocket CreateNonBlockingReadonlySocket(this IZmqContext context, SocketType socketType, TimeSpan receiveTimeout)
         {
             var socket = CreateReadonlySocket(context, socketType);
 
-            socket.ReceiveTimeout = receiveTimeout;
+            socket.SetOption(SocketOpt.RCVTIMEO, (int)receiveTimeout.TotalMilliseconds);
 
             return socket;
         }
 
-        public static ZeroMQ.ZmqSocket CreateReadonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType)
+        public static IZmqSocket CreateReadonlySocket(this IZmqContext context, SocketType socketType)
         {
             var socket = context.CreateSocket(socketType);
 
-            socket.ReceiveHighWatermark = 0;
-            socket.Linger = TimeSpan.FromMilliseconds(0);
+            socket.SetOption(SocketOpt.RCVHWM, 0);
+            socket.SetOption(SocketOpt.LINGER, 0);
 
             return socket;
         }
 
-        public static ZeroMQ.ZmqSocket CreateWriteonlySocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType)
+        public static IZmqSocket CreateWriteonlySocket(this IZmqContext context, SocketType socketType)
         {
             var socket = context.CreateSocket(socketType);
 
-            socket.SendHighWatermark = 0;
-            socket.Linger = TimeSpan.FromMilliseconds(0);
+            socket.SetOption(SocketOpt.SNDHWM, 0);
+            socket.SetOption(SocketOpt.LINGER, 0);
 
             return socket;
         }
 
-        public static ZeroMQ.ZmqSocket CreateNonBlockingSocket(this ZeroMQ.ZmqContext context, ZeroMQ.SocketType socketType, TimeSpan timeout)
+        public static IZmqSocket CreateNonBlockingSocket(this IZmqContext context, SocketType socketType, TimeSpan timeout)
         {
             var socket = context.CreateSocket(socketType);
 
-            socket.ReceiveTimeout = timeout;
+            socket.SetOption(SocketOpt.RCVTIMEO, (int)timeout.TotalMilliseconds);
 
-            socket.ReceiveHighWatermark = 0;
-            socket.SendHighWatermark = 0;
+            socket.SetOption(SocketOpt.RCVHWM, 0);
+            socket.SetOption(SocketOpt.SNDHWM, 0);
 
-            socket.Linger = TimeSpan.FromMilliseconds(0);
+            socket.SetOption(SocketOpt.LINGER, 0);
 
             return socket;
         }

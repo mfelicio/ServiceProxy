@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Castle.Zmq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ZeroMQ;
 
 namespace ServiceProxy.Zmq.Polling
 {
@@ -13,12 +13,12 @@ namespace ServiceProxy.Zmq.Polling
         private readonly string frontendAddress;
         private readonly string backendAddress;
 
-        private readonly ZeroMQ.ZmqContext zmqContext;
+        private readonly IZmqContext zmqContext;
 
         private long running;
         private volatile Task sendReceiveTask;
 
-        public ZmqPollBroker(ZeroMQ.ZmqContext zmqContext,
+        public ZmqPollBroker(IZmqContext zmqContext,
                          string frontendAddress,
                          string backendAddress)
         {
@@ -50,90 +50,67 @@ namespace ServiceProxy.Zmq.Polling
             }
         }
 
-        private void SendReceiveWithDevice()
-        {
-            using (var broker = new ZeroMQ.Devices.QueueDevice(this.zmqContext, this.frontendAddress, this.backendAddress, ZeroMQ.Devices.DeviceMode.Blocking))
-            {
-                try
-                {
-                    broker.Start();
-
-                    //while (Interlocked.Read(ref this.running) == 1)
-                    //{
-
-                    //}
-                }
-                finally
-                {
-                    broker.Stop();
-                }
-            }
-        }
-
         private void SendReceive()
         {
-            using (var frontendSocket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.ROUTER, TimeSpan.FromMilliseconds(1)))
+            using (var frontendSocket = this.zmqContext.CreateNonBlockingSocket(SocketType.Router, TimeSpan.FromMilliseconds(1)))
             {
                 //Bind client outbound
                 frontendSocket.Bind(this.frontendAddress);
 
-                using (var backendSocket = this.zmqContext.CreateNonBlockingSocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(1)))
+                using (var backendSocket = this.zmqContext.CreateNonBlockingSocket(SocketType.Dealer, TimeSpan.FromMilliseconds(1)))
                 {
                     //Bind server inbound
                     backendSocket.Bind(this.backendAddress);
 
-                    byte[] buffer = new byte[1024];
+                    var poller = new Castle.Zmq.Polling(PollingEvents.RecvReady, frontendSocket, backendSocket);
 
-                    //queue messages between frontend socket and backend socket
-                    frontendSocket.ReceiveReady += (s, e) =>
+                    poller.RecvReady = s =>
                     {
-                        byte[] clientId;
-                        byte[] frame;
-
-                        int readBytes;
-                        
-                        clientId = frontendSocket.Receive(buffer, out readBytes);
-                        if (readBytes > 0)
+                        if (s == frontendSocket)
                         {
-                            backendSocket.Send(clientId, readBytes, SocketFlags.SendMore);
-                            frame = frontendSocket.Receive(buffer, out readBytes);
+                            //queue messages between frontend socket and backend socket
+                            byte[] clientId;
+                            byte[] frame;
 
-                            while (frontendSocket.ReceiveMore)
+                            clientId = frontendSocket.Recv();
+                            if (clientId != null && frontendSocket.HasMoreToRecv())
                             {
-                                backendSocket.Send(frame, readBytes, SocketFlags.SendMore);
-                                frame = frontendSocket.Receive(buffer, out readBytes);
-                            }
+                                backendSocket.Send(clientId, hasMoreToSend: true);
+                                frame = frontendSocket.Recv();
 
-                            backendSocket.Send(frame, readBytes, SocketFlags.None);
+                                while (frontendSocket.HasMoreToRecv())
+                                {
+                                    backendSocket.Send(frame, hasMoreToSend: true);
+                                    frame = frontendSocket.Recv();
+                                }
+
+                                backendSocket.Send(frame);
+                            }
+                        }
+                        else
+                        {
+                            //forward responses from backend socket to frontend socket
+                            byte[] clientId;
+                            byte[] frame;
+
+                            clientId = backendSocket.Recv();
+                            if (clientId != null && backendSocket.HasMoreToRecv())
+                            {
+                                frontendSocket.Send(clientId, hasMoreToSend: true);
+                                frame = backendSocket.Recv();
+
+                                while (backendSocket.HasMoreToRecv())
+                                {
+                                    frontendSocket.Send(frame, hasMoreToSend: true);
+                                    frame = backendSocket.Recv();
+                                }
+
+                                frontendSocket.Send(frame);
+                            }
                         }
                     };
 
-                    //forward responses from backend socket to frontend socket
-                    backendSocket.ReceiveReady += (s, e) =>
-                    {
-                        byte[] clientId;
-                        byte[] frame;
-
-                        int readBytes;
-                        
-                        clientId = backendSocket.Receive(buffer, out readBytes);
-                        if (readBytes > 0)
-                        {
-                            frontendSocket.Send(clientId, readBytes, SocketFlags.SendMore);
-                            frame = backendSocket.Receive(buffer, out readBytes);
-
-                            while (backendSocket.ReceiveMore)
-                            {
-                                frontendSocket.Send(frame, readBytes, SocketFlags.SendMore);
-                                frame = backendSocket.Receive(buffer, out readBytes);
-                            }
-
-                            frontendSocket.Send(frame, readBytes, SocketFlags.None);
-                        }
-                    };
-
-                    var poller = new ZeroMQ.Poller(new ZeroMQ.ZmqSocket[] { frontendSocket, backendSocket });
-                    var pollTimeout = TimeSpan.FromMilliseconds(1);
+                    var pollTimeout = 1; //ms
 
                     while (Interlocked.Read(ref this.running) == 1)
                     {

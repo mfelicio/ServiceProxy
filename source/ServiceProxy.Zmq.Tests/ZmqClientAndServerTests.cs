@@ -1,6 +1,8 @@
-﻿using NUnit.Framework;
+﻿using Castle.Zmq;
+using NUnit.Framework;
 using ServiceProxy.Tests.Stubs;
 using ServiceProxy.Zmq.Polling;
+//using ServiceProxy.Zmq.Polling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +19,12 @@ namespace ServiceProxy.Zmq.Tests
         const string ServerInboundAddress = "tcp://127.0.0.1:8003";
         const string ServerOutboundAddress = "tcp://127.0.0.1:8004";
 
-        private ZeroMQ.ZmqContext zmqContext;
+        private IZmqContext zmqContext;
 
         [SetUp]
         public void Setup()
         {
-            this.zmqContext = ZeroMQ.ZmqContext.Create();
+            this.zmqContext = new Context();
         }
 
         [TearDown]

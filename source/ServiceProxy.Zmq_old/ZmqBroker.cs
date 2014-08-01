@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZeroMQ;
 
 namespace ServiceProxy.Zmq
 {
@@ -14,13 +15,13 @@ namespace ServiceProxy.Zmq
         private readonly string serverInboundAddress;
         private readonly string serverOutboundAddress;
 
-        private readonly ZMQ.Context zmqContext;
+        private readonly ZeroMQ.ZmqContext zmqContext;
 
         private long running;
         private volatile Task forwardRequestsTask;
         private volatile Task forwardResponsesTask;
 
-        public ZmqBroker(ZMQ.Context zmqContext,
+        public ZmqBroker(ZeroMQ.ZmqContext zmqContext,
                          string clientInboundAddress,
                          string clientOutboundAddress,
                          string serverInboundAddress,
@@ -60,12 +61,12 @@ namespace ServiceProxy.Zmq
 
         private void ForwardRequests()
         {
-            using (var clientOutboundSocket = this.zmqContext.Socket(ZMQ.SocketType.ROUTER))
+            using (var clientOutboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(ZeroMQ.SocketType.ROUTER, TimeSpan.FromMilliseconds(100)))
             {
                 //Bind client outbound
                 clientOutboundSocket.Bind(this.clientOutboundAddress);
-                
-                using (var serverInboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+
+                using (var serverInboundSocket = this.zmqContext.CreateWriteonlySocket(ZeroMQ.SocketType.DEALER))
                 {
                     //Bind server inbound
                     serverInboundSocket.Bind(this.serverInboundAddress);
@@ -73,23 +74,25 @@ namespace ServiceProxy.Zmq
                     //Forward messages from client inbound address to server outbound address
                     byte[] clientId;
                     byte[] frame;
-                    var timeout = 100;
+
+                    byte[] buffer = new byte[1024];
+                    int readBytes;
 
                     while (Interlocked.Read(ref this.running) == 1)
                     {
-                        clientId = clientOutboundSocket.Recv(timeout);
-                        if (clientId != null)
+                        clientId = clientOutboundSocket.Receive(buffer, out readBytes);
+                        if (readBytes > 0)
                         {
-                            serverInboundSocket.SendMore(clientId);
-                            frame = clientOutboundSocket.Recv();
+                            serverInboundSocket.Send(clientId, readBytes, SocketFlags.SendMore);
+                            frame = clientOutboundSocket.Receive(buffer, out readBytes);
 
-                            while (clientOutboundSocket.RcvMore)
+                            while (clientOutboundSocket.ReceiveMore)
                             {
-                                serverInboundSocket.SendMore(frame);
-                                frame = clientOutboundSocket.Recv();
+                                serverInboundSocket.Send(frame, readBytes, SocketFlags.SendMore);
+                                frame = clientOutboundSocket.Receive(buffer, out readBytes);
                             }
 
-                            serverInboundSocket.Send(frame, ZMQ.SendRecvOpt.NOBLOCK);
+                            serverInboundSocket.Send(frame, readBytes, SocketFlags.None);
                         }
                     }
                 }
@@ -98,12 +101,12 @@ namespace ServiceProxy.Zmq
 
         private void ForwardResponses()
         {
-            using (var serverOutboundSocket = this.zmqContext.Socket(ZMQ.SocketType.DEALER))
+            using (var serverOutboundSocket = this.zmqContext.CreateNonBlockingReadonlySocket(ZeroMQ.SocketType.DEALER, TimeSpan.FromMilliseconds(100)))
             {
                 //Bind server outbound
                 serverOutboundSocket.Bind(this.serverOutboundAddress);
 
-                using (var clientInboundSocket = this.zmqContext.Socket(ZMQ.SocketType.ROUTER))
+                using (var clientInboundSocket = this.zmqContext.CreateWriteonlySocket(ZeroMQ.SocketType.ROUTER))
                 {
                     //Bind client inbound
                     clientInboundSocket.Bind(this.clientInboundAddress);
@@ -111,23 +114,25 @@ namespace ServiceProxy.Zmq
                     //Forward messages from server outbound address to client inbound address
                     byte[] clientId;
                     byte[] frame;
-                    var timeout = 100;
+
+                    byte[] buffer = new byte[1024];
+                    int readBytes;
 
                     while (Interlocked.Read(ref this.running) == 1)
                     {
-                        clientId = serverOutboundSocket.Recv(timeout);
-                        if (clientId != null)
+                        clientId = serverOutboundSocket.Receive(buffer, out readBytes);
+                        if (readBytes > 0)
                         {
-                            clientInboundSocket.SendMore(clientId);
-                            frame = serverOutboundSocket.Recv();
+                            clientInboundSocket.Send(clientId, readBytes, SocketFlags.SendMore);
+                            frame = serverOutboundSocket.Receive(buffer, out readBytes);
 
-                            while (serverOutboundSocket.RcvMore)
+                            while (serverOutboundSocket.ReceiveMore)
                             {
-                                clientInboundSocket.SendMore(frame);
-                                frame = serverOutboundSocket.Recv();
+                                clientInboundSocket.Send(frame, readBytes, SocketFlags.SendMore);
+                                frame = serverOutboundSocket.Receive(buffer, out readBytes);
                             }
 
-                            clientInboundSocket.Send(frame, ZMQ.SendRecvOpt.NOBLOCK);
+                            clientInboundSocket.Send(frame, readBytes, SocketFlags.None);
                         }
                     }
                 }
