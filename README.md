@@ -1,6 +1,8 @@
 ServiceProxy
 ============
 
+[![Join the chat at https://gitter.im/mfelicio/ServiceProxy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mfelicio/ServiceProxy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ServiceProxy is a lightweight asynchronous proxy for .NET that allows you to use service contracts in a request/reply manner with your favorite messaging framework.
 
 ## How does it work?
